@@ -89,3 +89,42 @@ export interface ConfirmDialogData {
   confirmText?: string;
   cancelText?: string;
 }
+
+// ==========================================
+// Auth
+// ==========================================
+export interface LoginRequest {
+  username: string;
+  password: string;
+}
+
+export interface LoginResponse {
+  token: string;
+  username: string;
+  nombre: string;
+  rol: string;
+  expiresIn: number;
+}
+
+export interface UsuarioLogueado {
+  username: string;
+  nombre: string;
+  rol: string;
+}
+// ==========================================
+// Usuarios (admin)
+// ==========================================
+export interface UsuarioResponse {
+  id: number;
+  username: string;
+  nombre: string;
+  rol: string;
+  activo: boolean;
+}
+
+export interface CrearUsuarioRequest {
+  username: string;
+  password: string;
+  nombre: string;
+  rol: string;
+}
