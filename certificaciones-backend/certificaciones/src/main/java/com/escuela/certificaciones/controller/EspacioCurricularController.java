@@ -14,6 +14,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/espacios-curriculares")
+@CrossOrigin(origins = "http://localhost:4200")
 @RequiredArgsConstructor
 @Tag(name = "Espacios Curriculares", description = "CRUD de espacios curriculares")
 public class EspacioCurricularController {

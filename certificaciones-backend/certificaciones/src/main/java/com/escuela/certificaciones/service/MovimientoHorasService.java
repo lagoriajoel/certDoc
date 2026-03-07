@@ -28,7 +28,9 @@ public class MovimientoHorasService {
 
     @Transactional(readOnly = true)
     public List<MovimientoHorasDTO> findAll() {
-        return movimientoRepository.findAll().stream().map(mapper::toDTO).collect(Collectors.toList());
+        return movimientoRepository.findAll().stream()
+                .map(mapper::toDTO)
+                .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
@@ -44,21 +46,19 @@ public class MovimientoHorasService {
                 .stream().map(mapper::toDTO).collect(Collectors.toList());
     }
 
+    // ── Crear — construye la entidad con new para garantizar id = null ──
     public MovimientoHorasDTO create(MovimientoHorasDTO dto) {
-        MovimientoHoras entity = buildEntityFromDTO(dto);
-        return mapper.toDTO(movimientoRepository.save(entity));
+        MovimientoHoras entity = new MovimientoHoras();
+        setRelationsAndFields(entity, dto);
+        MovimientoHoras saved = movimientoRepository.saveAndFlush(entity);
+        return mapper.toDTO(saved);
     }
 
+    // ── Actualizar — busca la entidad existente y la actualiza ──
     public MovimientoHorasDTO update(Long id, MovimientoHorasDTO dto) {
         MovimientoHoras entity = movimientoRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("MovimientoHoras", id));
-        mapper.updateFromDTO(dto, entity);
-        entity.setDocente(docenteRepository.findById(dto.getDocenteId())
-                .orElseThrow(() -> new ResourceNotFoundException("Docente", dto.getDocenteId())));
-        entity.setEspacioCurricular(espacioRepository.findById(dto.getEspacioCurricularId())
-                .orElseThrow(() -> new ResourceNotFoundException("EspacioCurricular", dto.getEspacioCurricularId())));
-        entity.setSituacionRevista(situacionRepository.findById(dto.getSituacionRevistaId())
-                .orElseThrow(() -> new ResourceNotFoundException("SituacionRevista", dto.getSituacionRevistaId())));
+        setRelationsAndFields(entity, dto);
         return mapper.toDTO(movimientoRepository.save(entity));
     }
 
@@ -69,14 +69,28 @@ public class MovimientoHorasService {
         movimientoRepository.deleteById(id);
     }
 
-    private MovimientoHoras buildEntityFromDTO(MovimientoHorasDTO dto) {
-        MovimientoHoras entity = mapper.toEntity(dto);
-        entity.setDocente(docenteRepository.findById(dto.getDocenteId())
-                .orElseThrow(() -> new ResourceNotFoundException("Docente", dto.getDocenteId())));
-        entity.setEspacioCurricular(espacioRepository.findById(dto.getEspacioCurricularId())
-                .orElseThrow(() -> new ResourceNotFoundException("EspacioCurricular", dto.getEspacioCurricularId())));
-        entity.setSituacionRevista(situacionRepository.findById(dto.getSituacionRevistaId())
-                .orElseThrow(() -> new ResourceNotFoundException("SituacionRevista", dto.getSituacionRevistaId())));
-        return entity;
+    // ── Método compartido para setear campos y relaciones ──
+    private void setRelationsAndFields(MovimientoHoras entity, MovimientoHorasDTO dto) {
+        entity.setDocente(
+                docenteRepository.findById(dto.getDocenteId())
+                        .orElseThrow(() -> new ResourceNotFoundException("Docente", dto.getDocenteId()))
+        );
+        entity.setEspacioCurricular(
+                espacioRepository.findById(dto.getEspacioCurricularId())
+                        .orElseThrow(() -> new ResourceNotFoundException("EspacioCurricular", dto.getEspacioCurricularId()))
+        );
+        entity.setSituacionRevista(
+                situacionRepository.findById(dto.getSituacionRevistaId())
+                        .orElseThrow(() -> new ResourceNotFoundException("SituacionRevista", dto.getSituacionRevistaId()))
+        );
+        entity.setCantidadHoras(dto.getCantidadHoras());
+        entity.setCurso(dto.getCurso());
+        entity.setDivision(dto.getDivision());
+        entity.setModalidad(dto.getModalidad());
+        entity.setFechaAlta(dto.getFechaAlta());
+        entity.setInstrumentoLegalAlta(dto.getInstrumentoLegalAlta());
+        entity.setFechaBaja(dto.getFechaBaja());
+        entity.setInstrumentoLegalBaja(dto.getInstrumentoLegalBaja());
+        entity.setObservaciones(dto.getObservaciones());
     }
 }

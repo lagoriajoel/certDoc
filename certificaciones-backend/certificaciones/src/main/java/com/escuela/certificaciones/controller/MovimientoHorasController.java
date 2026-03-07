@@ -14,6 +14,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/movimientos-horas")
+@CrossOrigin(origins = "http://localhost:4200")
 @RequiredArgsConstructor
 @Tag(name = "Movimientos de Horas", description = "CRUD de movimientos de horas docentes")
 public class MovimientoHorasController {

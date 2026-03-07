@@ -16,6 +16,7 @@ public interface MovimientoHorasMapper {
     @Mapping(source = "situacionRevista.nombre", target = "situacionRevistaNombre")
     MovimientoHorasDTO toDTO(MovimientoHoras entity);
 
+    @Mapping(target = "id", ignore = true)
     @Mapping(target = "docente", ignore = true)
     @Mapping(target = "espacioCurricular", ignore = true)
     @Mapping(target = "situacionRevista", ignore = true)

@@ -4,6 +4,7 @@ import com.escuela.certificaciones.dto.CertificacionResponseDTO;
 import com.escuela.certificaciones.dto.MovimientoCertificacionDTO;
 import com.lowagie.text.*;
 import com.lowagie.text.Font;
+import com.lowagie.text.Rectangle;
 import com.lowagie.text.pdf.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
