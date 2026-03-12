@@ -15,4 +15,5 @@ public class CertificacionResponseDTO {
     private String dni;
     private List<MovimientoCertificacionDTO> movimientos;
     private Integer totalHorasActivas;
+    private String notaPie;
 }

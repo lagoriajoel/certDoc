@@ -3,6 +3,7 @@ package com.escuela.certificaciones.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Entity
@@ -26,6 +27,18 @@ public class Docente {
 
     @Column(nullable = false, length = 100)
     private String nombre;
+
+    @Column(length = 50)
+    private String legajo;
+
+    @Column(name = "titulo_docente", length = 200)
+    private String tituloDocente;
+
+    @Column(name = "fecha_ingreso")
+    private LocalDate fechaIngreso;
+
+    @Column(length = 150)
+    private String email;
 
     @OneToMany(mappedBy = "docente", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<MovimientoHoras> movimientos;

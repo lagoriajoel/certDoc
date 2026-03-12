@@ -27,7 +27,9 @@ services:
 
   # ── Backend Spring Boot ────────────────────────────────────
   backend:
-    image: lagoriajoel/certificaciones-backend:latest
+    build:
+      context: ./certificaciones-backend/certificaciones
+      dockerfile: Dockerfile
     container_name: certificaciones-backend
     restart: unless-stopped
     environment:
@@ -50,7 +52,9 @@ services:
 
   # ── Frontend Angular (Nginx) ───────────────────────────────
   frontend:
-    image: lagoriajoel/certificaciones-frontend:latest
+    build:
+      context: ./certificaciones-frontend/certificaciones-frontend
+      dockerfile: Dockerfile
     container_name: certificaciones-frontend
     restart: unless-stopped
     ports:

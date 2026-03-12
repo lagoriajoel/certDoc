@@ -8,6 +8,7 @@ import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialo
 import { CertificacionPrintComponent } from '../../../shared/components/certificacion-print/certificacion-print.component';
 import { DocenteService } from '../../../core/services/docente.service';
 import { MovimientoService } from '../../../core/services/movimiento.service';
+import { ActaService } from '../../../core/services/acta.service';
 import { Docente, MovimientoHoras, CertificacionResponse } from '../../../core/models/models';
 
 @Component({
@@ -124,6 +125,13 @@ import { Docente, MovimientoHoras, CertificacionResponse } from '../../../core/m
                 <th mat-header-cell *matHeaderCellDef>Acciones</th>
                 <td mat-cell *matCellDef="let m">
                   <div class="action-buttons">
+                    <!-- Botón Acta -->
+                    <button mat-icon-button
+                      [color]="actasMap[m.id!] ? 'accent' : ''"
+                      (click)="abrirActa(m)"
+                      [matTooltip]="actasMap[m.id!] ? 'Ver / Editar Acta' : 'Cargar Acta'">
+                      <mat-icon>{{ actasMap[m.id!] ? 'description' : 'note_add' }}</mat-icon>
+                    </button>
                     <button mat-icon-button
                       [routerLink]="['/docentes', docenteId, 'movimiento', m.id, 'editar']"
                       matTooltip="Editar">
@@ -192,12 +200,14 @@ export class DocenteDetalleComponent implements OnInit {
   columns = ['espacioCurricular', 'cursoDiv', 'horas', 'situacion', 'fechaAlta', 'fechaBaja', 'acciones'];
   docenteId!: number;
   totalHorasActivas = 0;
+  actasMap: Record<number, boolean> = {};  // movimientoId → tiene acta?
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private docenteService: DocenteService,
     private movimientoService: MovimientoService,
+    private actaService: ActaService,
     private dialog: MatDialog,
     private snackBar: MatSnackBar
   ) {}
@@ -218,7 +228,23 @@ export class DocenteDetalleComponent implements OnInit {
       this.totalHorasActivas = list
         .filter(m => !m.fechaBaja)
         .reduce((sum, m) => sum + m.cantidadHoras, 0);
+      this.verificarActas(list);
     });
+  }
+
+  // Verificar qué movimientos ya tienen acta cargada
+  verificarActas(movimientos: MovimientoHoras[]): void {
+    movimientos.forEach(m => {
+      if (m.id) {
+        this.actaService.existeActa(m.id).subscribe(res => {
+          this.actasMap[m.id!] = res.existe;
+        });
+      }
+    });
+  }
+
+  abrirActa(m: MovimientoHoras): void {
+    this.router.navigate(['/docentes', this.docenteId, 'movimiento', m.id, 'acta']);
   }
 
   getSituacionClass(nombre?: string): string {

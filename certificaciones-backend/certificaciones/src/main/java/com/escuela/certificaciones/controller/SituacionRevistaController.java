@@ -14,7 +14,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/situaciones-revista")
-@CrossOrigin(origins = "http://localhost:4200")
 @RequiredArgsConstructor
 @Tag(name = "Situaciones de Revista", description = "CRUD de situaciones de revista (Titular, Interino, Suplente)")
 public class SituacionRevistaController {

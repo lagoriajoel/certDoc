@@ -42,6 +42,7 @@ public class MovimientoHoras {
     @JoinColumn(name = "situacion_revista_id", nullable = false)
     private SituacionRevista situacionRevista;
 
+
     @Column(nullable = false)
     private LocalDate fechaAlta;
 
@@ -56,4 +57,7 @@ public class MovimientoHoras {
 
     @Column(length = 500)
     private String observaciones;
+
+    @OneToOne(mappedBy = "movimiento", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private Acta acta;
 }

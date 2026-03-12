@@ -1,15 +1,19 @@
 import { Component, Inject, ViewEncapsulation } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialogModule } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { CertificacionResponse, MovimientoCertificacion } from '../../../core/models/models';
+import { MatInputModule } from '@angular/material/input';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { CertificacionResponse } from '../../../core/models/models';
 
 @Component({
   selector: 'app-certificacion-print',
   standalone: true,
   encapsulation: ViewEncapsulation.None,
-  imports: [CommonModule, DatePipe, MatDialogModule, MatButtonModule, MatIconModule],
+  imports: [CommonModule, DatePipe, FormsModule, MatDialogModule, MatButtonModule,
+            MatIconModule, MatInputModule, MatFormFieldModule],
   template: `
     <!-- Acciones (no se imprimen) -->
     <div class="no-print dialog-actions">
@@ -22,6 +26,16 @@ import { CertificacionResponse, MovimientoCertificacion } from '../../../core/mo
           <mat-icon>print</mat-icon> Imprimir
         </button>
       </div>
+    </div>
+
+    <!-- Nota al pie editable (no se imprime el campo, sí el contenido) -->
+    <div class="no-print nota-pie-editor">
+      <mat-form-field appearance="outline" class="nota-field">
+        <mat-label>Nota al pie (opcional)</mat-label>
+        <textarea matInput [(ngModel)]="cert.notaPie" rows="3"
+          placeholder="Ej: DI: 265/13 - 17/05/13 LCMJ para desempeñarse como Regente EICO"></textarea>
+        <mat-hint>Este texto aparecerá al pie de la certificación impresa</mat-hint>
+      </mat-form-field>
     </div>
 
     <!-- Contenido imprimible -->
@@ -49,10 +63,24 @@ import { CertificacionResponse, MovimientoCertificacion } from '../../../core/mo
 
         <!-- Tabla -->
         <table class="cert-table">
+          <colgroup>
+            <col class="col-num">
+            <col class="col-espacio">
+            <col class="col-hs">
+            <col class="col-curso">
+            <col class="col-div">
+            <col class="col-modalidad">
+            <col class="col-sit">
+            <col class="col-fecha">
+            <col class="col-instr">
+            <col class="col-fecha">
+            <col class="col-instr">
+            <col class="col-obs">
+          </colgroup>
           <thead>
             <tr>
               <th>Nº</th>
-              <th>Espacio Curricular</th>
+              <th>E. Curricular</th>
               <th>Hs.</th>
               <th>Curso</th>
               <th>Div.</th>
@@ -76,10 +104,10 @@ import { CertificacionResponse, MovimientoCertificacion } from '../../../core/mo
                 <td>{{ m.modalidad }}</td>
                 <td>{{ m.situacionRevista }}</td>
                 <td class="center">{{ m.fechaAlta | date:'dd/MM/yy' }}</td>
-                <td class="small">{{ m.instrumentoLegalAlta }}</td>
+                <td>{{ m.instrumentoLegalAlta }}</td>
                 <td class="center">{{ m.fechaBaja ? (m.fechaBaja | date:'dd/MM/yy') : '—' }}</td>
-                <td class="small">{{ m.instrumentoLegalBaja || '—' }}</td>
-                <td class="small">{{ m.observaciones || '' }}</td>
+                <td>{{ m.instrumentoLegalBaja || '—' }}</td>
+                <td>{{ m.observaciones || '' }}</td>
               </tr>
             }
           </tbody>
@@ -91,7 +119,15 @@ import { CertificacionResponse, MovimientoCertificacion } from '../../../core/mo
           <strong class="cert-total-value">{{ cert.totalHorasActivas }} horas</strong>
         </div>
 
-        <!-- Pie -->
+        <!-- Nota al pie (solo se muestra si tiene contenido) -->
+        @if (cert.notaPie) {
+          <div class="cert-nota-pie">
+            <p class="cert-nota-titulo">Observaciones:</p>
+            <p class="cert-nota-texto" style="white-space: pre-line">{{ cert.notaPie }}</p>
+          </div>
+        }
+
+        <!-- Pie firmas -->
         <div class="cert-footer">
           <div class="cert-footer-col">
             <div class="cert-sign-line"></div>
@@ -111,106 +147,64 @@ import { CertificacionResponse, MovimientoCertificacion } from '../../../core/mo
     </div>
   `,
   styles: [`
-    /* ── Quitar padding del dialog de Material ── */
     .cdk-overlay-pane .mat-mdc-dialog-container,
-    .cdk-overlay-pane .mdc-dialog__surface {
-      padding: 0 !important;
-      overflow: hidden !important;
-    }
+    .cdk-overlay-pane .mdc-dialog__surface { padding: 0 !important; overflow: hidden !important; }
 
-    /* ── Acciones del dialog ── */
-    .no-print {
-      padding: 16px 24px;
-      border-bottom: 1px solid #e2e8f0;
-      background: white;
-    }
-    .dialog-title  { margin: 0; font-size: 1.1rem; font-weight: 700; }
-    .dialog-actions { display: flex; justify-content: space-between; align-items: center; }
-    .dialog-btns   { display: flex; gap: 8px; }
+    .no-print { background: white; }
+    .dialog-actions { padding: 16px 24px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; }
+    .dialog-title { margin: 0; font-size: 1.1rem; font-weight: 700; }
+    .dialog-btns { display: flex; gap: 8px; }
 
-    /* ── Wrapper scroll ── */
-    .cert-wrapper {
-      padding: 16px;
-      background: #f1f5f9;
-      max-height: 78vh;
-      overflow-y: auto;
-    }
+    .nota-pie-editor { padding: 12px 24px; border-bottom: 1px solid #e2e8f0; background: #f8fafc; }
+    .nota-field { width: 100%; }
 
-    /* ── Hoja (pantalla) ── */
-    .cert-document {
-      background: white;
-      padding: 12mm 8mm;       /* margen visible en pantalla, igual al de impresión */
-      max-width: 960px;
-      margin: 0 auto;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.15);
-      border-radius: 4px;
-    }
+    .cert-wrapper { padding: 16px; background: #f1f5f9; max-height: 62vh; overflow-y: auto; }
+    .cert-document { background: white; padding: 10mm 6mm; max-width: 100%; margin: 0 auto; box-shadow: 0 2px 12px rgba(0,0,0,0.15); border-radius: 4px; }
 
-    /* ── Encabezado ── */
-    .cert-header       { display: flex; align-items: center; gap: 20px; margin-bottom: 14px; }
-    .cert-logo         { width: 90px; }
-    .cert-title        { margin: 0; font-size: 1.1rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; color: #1e293b; }
-    .cert-subtitle     { margin: 4px 0 0; font-size: 0.82rem; color: #64748b; }
-    .cert-divider      { border: none; border-top: 2px solid #1e293b; margin: 12px 0; }
-    .cert-intro        { font-size: 0.9rem; line-height: 1.6; margin-bottom: 16px; color: #334155; }
+    .cert-header { display: flex; align-items: center; gap: 16px; margin-bottom: 12px; }
+    .cert-logo { width: 80px; }
+    .cert-title { margin: 0; font-size: 1rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.03em; color: #1e293b; }
+    .cert-subtitle { margin: 3px 0 0; font-size: 0.8rem; color: #64748b; }
+    .cert-divider { border: none; border-top: 2px solid #1e293b; margin: 10px 0; }
+    .cert-intro { font-size: 0.88rem; line-height: 1.5; margin-bottom: 14px; color: #334155; }
 
-    /* ── Tabla ── */
-    .cert-table            { width: 100%; border-collapse: collapse; font-size: 0.75rem; margin-bottom: 16px; table-layout: fixed; }
-    .cert-table th         { background: #1e293b; color: white; padding: 6px 4px; text-align: left; font-size: 0.68rem; white-space: nowrap; }
-    .cert-table td         { padding: 6px 4px; border-bottom: 1px solid #e2e8f0; color: #334155; word-break: break-word; }
+    .cert-table { width: 100%; border-collapse: collapse; font-size: 0.72rem; margin-bottom: 14px; table-layout: fixed; }
+    .col-num { width: 4%; } .col-espacio { width: 15%; } .col-hs { width: 4%; }
+    .col-curso { width: 6%; } .col-div { width: 4%; } .col-modalidad { width: 9%; }
+    .col-sit { width: 9%; } .col-fecha { width: 8%; } .col-instr { width: 12%; } .col-obs { width: 9%; }
+    .cert-table th { background: #000000 !important; color: white !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; padding: 6px 4px; text-align: left; font-size: 0.65rem; white-space: nowrap; overflow: hidden; }
+    .cert-table td { padding: 5px 4px; border-bottom: 1px solid #e2e8f0; color: #334155; overflow: hidden; text-overflow: ellipsis; word-break: break-word; }
     .cert-table tr:nth-child(even) td { background: #f8fafc; }
-    .cert-table .center    { text-align: center; }
-    .cert-table .small     { font-size: 0.68rem; }
+    .cert-table .center { text-align: center; }
 
-    /* ── Total ── */
-    .cert-total        { display: flex; align-items: center; gap: 12px; justify-content: flex-end; padding: 10px 0; border-top: 2px solid #1e293b; font-size: 0.9rem; color: #334155; }
-    .cert-total-value  { font-size: 1rem; color: #059669; }
+    .cert-total { display: flex; align-items: center; gap: 12px; justify-content: flex-end; padding: 10px 0; border-top: 2px solid #1e293b; font-size: 0.9rem; color: #334155; }
+    .cert-total-value { font-size: 1rem; color: #059669; }
 
-    /* ── Pie ── */
-    .cert-footer       { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px; margin-top: 48px; text-align: center; font-size: 0.82rem; color: #475569; }
-    .cert-sign-line    { border-bottom: 1px solid #334155; margin-bottom: 8px; }
-    .cert-sign-role    { font-weight: 600; }
-    .cert-date-col     { display: flex; align-items: flex-end; justify-content: center; }
-    .cert-lugar        { font-size: 0.82rem; color: #475569; }
+    .cert-nota-pie { margin-top: 14px; padding: 10px; border: 1px solid #e2e8f0; border-radius: 4px; background: #f8fafc; }
+    .cert-nota-titulo { margin: 0 0 4px; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; color: #475569; }
+    .cert-nota-texto { margin: 0; font-size: 0.82rem; color: #334155; line-height: 1.6; }
 
-    /* ══════════════════════════════════════════
-       IMPRESIÓN — controla los márgenes reales
-       ══════════════════════════════════════════ */
+    .cert-footer { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px; margin-top: 40px; text-align: center; font-size: 0.82rem; color: #475569; }
+    .cert-sign-line { border-bottom: 1px solid #334155; margin-bottom: 8px; }
+    .cert-sign-role { font-weight: 600; }
+    .cert-date-col { display: flex; align-items: flex-end; justify-content: center; }
+    .cert-lugar { font-size: 0.82rem; color: #475569; }
+
     @media print {
-      /* Tamaño y márgenes de la hoja */
-      @page {
-        size: A4 landscape;
-        margin: 8mm 6mm;       /* ← cambiá este valor para ajustar márgenes laterales */
-      }
-
-      /* Ocultar todo excepto el contenido */
-      body > *                { display: none !important; }
-      .cdk-overlay-container  { display: block !important; }
-      .no-print               { display: none !important; }
-
-      /* Quitar scroll y fondos */
-      .cert-wrapper {
-        padding: 0 !important;
-        background: white !important;
-        max-height: none !important;
-        overflow: visible !important;
-      }
-
-      /* La hoja ocupa todo el ancho disponible */
-      .cert-document {
-        box-shadow: none !important;
-        border-radius: 0 !important;
-        padding: 0 !important;    /* el margen lo maneja @page */
-        max-width: 100% !important;
-        width: 100% !important;
-      }
-
-      /* Tipografía reducida para entrar mejor */
-      .cert-table    { font-size: 7pt !important; }
-      .cert-title    { font-size: 11pt !important; }
-      .cert-intro    { font-size: 8.5pt !important; }
-      .cert-total    { font-size: 8.5pt !important; }
-      .cert-footer   { font-size: 8pt !important; margin-top: 32px !important; }
+      @page { size: A4 landscape; margin: 8mm 6mm; }
+      .no-print { display: none !important; }
+      .cert-wrapper { padding: 0 !important; background: white !important; max-height: none !important; overflow: visible !important; }
+      .cert-document { box-shadow: none !important; border-radius: 0 !important; padding: 0 !important; max-width: 100% !important; width: 100% !important; }
+      .cert-table { font-size: 6.5pt !important; }
+      .cert-table th { font-size: 6pt !important; padding: 4px 3px !important; background: #000000 !important; color: white !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+      .cert-table td { padding: 4px 3px !important; }
+      .cert-title { font-size: 10pt !important; }
+      .cert-intro { font-size: 8pt !important; }
+      .cert-total { font-size: 8pt !important; }
+      .cert-nota-pie { border: none !important; background: white !important; padding: 6px 0 !important; border-top: 1px solid #e2e8f0 !important; }
+      .cert-nota-titulo { font-size: 7pt !important; }
+      .cert-nota-texto { font-size: 7pt !important; }
+      .cert-footer { font-size: 7.5pt !important; margin-top: 24px !important; }
     }
   `]
 })

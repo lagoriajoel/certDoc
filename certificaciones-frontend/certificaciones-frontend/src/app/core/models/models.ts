@@ -6,6 +6,10 @@ export interface Docente {
   dni: string;
   apellido: string;
   nombre: string;
+  legajo?: string;
+  tituloDocente?: string;
+  fechaIngreso?: string | null;
+  email?: string | null;
 }
 
 // ==========================================
@@ -63,6 +67,7 @@ export interface CertificacionResponse {
   dni: string;
   movimientos: MovimientoCertificacion[];
   totalHorasActivas: number;
+   notaPie?: string | null;
 }
 
 export interface MovimientoCertificacion {
@@ -127,4 +132,31 @@ export interface CrearUsuarioRequest {
   password: string;
   nombre: string;
   rol: string;
+}
+
+
+export type TipoActa = 'ALTA_HORAS' | 'BAJA_HORAS' | 'CAMBIO_SITUACION_REVISTA';
+
+export interface Acta {
+  id?: number;
+  movimientoId: number;
+  tipoActa: TipoActa;
+  numeroDisposicion: string;
+  fechaActa: string;
+  nombreDirectivo: string;
+  visto: string;
+  considerando: string;
+  articulos: string;
+  fechaCreacion?: string;
+  fechaActualizacion?: string;
+  // Datos del movimiento
+  docenteNombre?: string;
+  docenteDni?: string;
+  espacioCurricular?: string;
+  cantidadHoras?: number;
+  curso?: string;
+  division?: string;
+  situacionRevista?: string;
+  instrumentoLegalAlta?: string;
+  instrumentoLegalBaja?: string;
 }

@@ -30,5 +30,11 @@ export const DOCENTES_ROUTES: Routes = [
     path: ':docenteId/movimiento/:id/editar',
     loadComponent: () =>
       import('../movimientos/movimiento-form/movimiento-form.component').then(m => m.MovimientoFormComponent)
+  },
+   // ── Acta ──
+  {
+    path: ':docenteId/movimiento/:movimientoId/acta',
+    loadComponent: () =>
+      import('../movimientos/acta-form/acta-form.component').then(m => m.ActaFormComponent)
   }
 ];

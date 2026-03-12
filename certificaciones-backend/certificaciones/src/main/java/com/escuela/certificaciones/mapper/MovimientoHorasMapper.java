@@ -14,16 +14,19 @@ public interface MovimientoHorasMapper {
     @Mapping(source = "espacioCurricular.nombre", target = "espacioCurricularNombre")
     @Mapping(source = "situacionRevista.id", target = "situacionRevistaId")
     @Mapping(source = "situacionRevista.nombre", target = "situacionRevistaNombre")
+
     MovimientoHorasDTO toDTO(MovimientoHoras entity);
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "docente", ignore = true)
     @Mapping(target = "espacioCurricular", ignore = true)
     @Mapping(target = "situacionRevista", ignore = true)
+    @Mapping(target = "acta", ignore = true)
     MovimientoHoras toEntity(MovimientoHorasDTO dto);
 
     @Mapping(target = "docente", ignore = true)
     @Mapping(target = "espacioCurricular", ignore = true)
     @Mapping(target = "situacionRevista", ignore = true)
+    @Mapping(target = "acta", ignore = true)
     void updateFromDTO(MovimientoHorasDTO dto, @MappingTarget MovimientoHoras entity);
 }
