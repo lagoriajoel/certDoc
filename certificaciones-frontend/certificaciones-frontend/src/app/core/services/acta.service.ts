@@ -10,12 +10,22 @@ export class ActaService {
 
   constructor(private http: HttpClient) {}
 
-  getByMovimiento(movimientoId: number): Observable<Acta> {
-    return this.http.get<Acta>(`${this.url}/movimiento/${movimientoId}`);
+  // Todas las actas de un movimiento
+  getByMovimiento(movimientoId: number): Observable<Acta[]> {
+    return this.http.get<Acta[]>(`${this.url}/movimiento/${movimientoId}`);
+  }
+
+  // Acta específica por tipo
+  getByMovimientoYTipo(movimientoId: number, tipoActa: string): Observable<Acta> {
+    return this.http.get<Acta>(`${this.url}/movimiento/${movimientoId}/tipo/${tipoActa}`);
   }
 
   existeActa(movimientoId: number): Observable<{ existe: boolean }> {
     return this.http.get<{ existe: boolean }>(`${this.url}/movimiento/${movimientoId}/existe`);
+  }
+
+  existeActaPorTipo(movimientoId: number, tipoActa: string): Observable<{ existe: boolean }> {
+    return this.http.get<{ existe: boolean }>(`${this.url}/movimiento/${movimientoId}/existe/${tipoActa}`);
   }
 
   create(acta: Acta): Observable<Acta> {

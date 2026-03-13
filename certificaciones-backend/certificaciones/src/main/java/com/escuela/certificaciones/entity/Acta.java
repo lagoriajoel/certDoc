@@ -20,8 +20,8 @@ public class Acta {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "movimiento_id", nullable = false, unique = true)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "movimiento_id", nullable = false)
     private MovimientoHoras movimiento;
 
     @Enumerated(EnumType.STRING)

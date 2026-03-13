@@ -22,7 +22,10 @@ import { ActaPrintComponent } from '../../../shared/components/acta-print/acta-p
         </button>
         <div>
           <h1 class="page-title">{{ actaId ? 'Editar Acta' : 'Nueva Acta' }}</h1>
-          <span class="page-subtitle">{{ movimiento?.espacioCurricularNombre }} — {{ movimiento?.curso }} {{ movimiento?.division }}</span>
+          <span class="page-subtitle">
+            {{ movimiento?.espacioCurricularNombre || movimiento?.cargoNombre }}
+            @if (movimiento?.curso) { — {{ movimiento?.curso }} {{ movimiento?.division }} }
+          </span>
         </div>
         @if (actaId) {
           <button mat-flat-button color="accent" (click)="verActa()" class="ml-auto">
@@ -35,7 +38,6 @@ import { ActaPrintComponent } from '../../../shared/components/acta-print/acta-p
         <mat-card-content>
           <form [formGroup]="form" (ngSubmit)="onSubmit()" class="acta-form">
 
-            <!-- Fila 1 -->
             <div class="form-row">
               <mat-form-field appearance="outline">
                 <mat-label>Tipo de Acta</mat-label>
@@ -45,9 +47,6 @@ import { ActaPrintComponent } from '../../../shared/components/acta-print/acta-p
                   <mat-option value="CAMBIO_SITUACION_REVISTA">Cambio de Situación de Revista</mat-option>
                 </mat-select>
                 <mat-icon matSuffix>article</mat-icon>
-                @if (form.get('tipoActa')?.errors?.['required'] && form.get('tipoActa')?.touched) {
-                  <mat-error>Campo obligatorio</mat-error>
-                }
               </mat-form-field>
 
               <mat-form-field appearance="outline">
@@ -70,7 +69,6 @@ import { ActaPrintComponent } from '../../../shared/components/acta-print/acta-p
               </mat-form-field>
             </div>
 
-            <!-- Visto -->
             <div class="form-section-label">
               Visto
               <button mat-icon-button type="button" matTooltip="Regenerar texto" (click)="generarTextos()">
@@ -82,14 +80,12 @@ import { ActaPrintComponent } from '../../../shared/components/acta-print/acta-p
               <textarea matInput formControlName="visto" rows="4"></textarea>
             </mat-form-field>
 
-            <!-- Considerando -->
             <div class="form-section-label">Considerando</div>
             <mat-form-field appearance="outline" class="full-width">
               <mat-label>Considerando</mat-label>
               <textarea matInput formControlName="considerando" rows="6"></textarea>
             </mat-form-field>
 
-            <!-- Artículos -->
             <div class="form-section-label">Por Ello — Dispone</div>
             <mat-form-field appearance="outline" class="full-width">
               <mat-label>Artículos</mat-label>
@@ -146,14 +142,17 @@ export class ActaFormComponent implements OnInit {
   ngOnInit(): void {
     this.docenteId = +this.route.snapshot.paramMap.get('docenteId')!;
     this.movimientoId = +this.route.snapshot.paramMap.get('movimientoId')!;
+    const actaIdParam = this.route.snapshot.paramMap.get('actaId');
+    if (actaIdParam) this.actaId = +actaIdParam;
 
-    this.buildForm();
+    const tipoParam = this.route.snapshot.queryParamMap.get('tipo') || 'ALTA_HORAS';
+    this.buildForm(tipoParam);
     this.loadMovimiento();
   }
 
-  buildForm(): void {
+  buildForm(tipoActa: string = 'ALTA_HORAS'): void {
     this.form = this.fb.group({
-      tipoActa: ['ALTA_HORAS', Validators.required],
+      tipoActa: [tipoActa, Validators.required],
       numeroDisposicion: ['', Validators.required],
       fechaActa: [new Date(), Validators.required],
       visto: [''],
@@ -165,11 +164,10 @@ export class ActaFormComponent implements OnInit {
   loadMovimiento(): void {
     this.movimientoService.getById(this.movimientoId).subscribe(m => {
       this.movimiento = m;
-      // Verificar si ya existe acta
-      this.actaService.existeActa(this.movimientoId).subscribe(res => {
-        if (res.existe) {
-          this.actaService.getByMovimiento(this.movimientoId).subscribe(acta => {
-            this.actaId = acta.id;
+      if (this.actaId) {
+        this.actaService.getByMovimiento(this.movimientoId).subscribe(actas => {
+          const acta = actas.find(a => a.id === this.actaId);
+          if (acta) {
             this.form.patchValue({
               tipoActa: acta.tipoActa,
               numeroDisposicion: acta.numeroDisposicion,
@@ -178,63 +176,54 @@ export class ActaFormComponent implements OnInit {
               considerando: acta.considerando,
               articulos: acta.articulos
             });
-          });
-        } else {
-          // Generar textos automáticos con los datos del movimiento
-          this.generarTextos();
-        }
-      });
+          }
+        });
+      } else {
+        this.generarTextos();
+      }
     });
   }
 
   onTipoActaChange(): void {
-    if (!this.actaId) {
-      this.generarTextos();
-    }
+    if (!this.actaId) this.generarTextos();
   }
 
   generarTextos(): void {
     if (!this.movimiento) return;
     const tipo = this.form.get('tipoActa')?.value as TipoActa;
     const m = this.movimiento;
-    const nombreDocente = `${m.espacioCurricularNombre || ''}`;  // se reemplaza con datos del docente al cargar
     const horas = m.cantidadHoras;
-    const espacio = m.espacioCurricularNombre || '';
-    const curso = `${m.curso} "${m.division}"`;
+    const espacio = m.espacioCurricularNombre || m.cargoNombre || '';
+    const curso = m.curso ? `${m.curso} "${m.division}"` : '';
     const situacion = m.situacionRevistaNombre || '';
     const instrAlta = m.instrumentoLegalAlta || '';
     const instrBaja = m.instrumentoLegalBaja || '';
 
-    let visto = '';
-    let considerando = '';
-    let articulos = '';
+    let visto = '', considerando = '', articulos = '';
+    // Pre-cargar número de disposición según tipo
+      if (tipo === 'ALTA_HORAS' || tipo === 'CAMBIO_SITUACION_REVISTA') {
+        this.form.patchValue({ numeroDisposicion: instrAlta });
+      } else if (tipo === 'BAJA_HORAS') {
+        this.form.patchValue({ numeroDisposicion: instrBaja });
+      }
 
     if (tipo === 'ALTA_HORAS') {
-      visto = `La necesidad de registrar el alta de horas cátedra correspondiente al/la docente ${nombreDocente}.`;
-
-      considerando = `Que el/la docente ${nombreDocente} ha sido designado/a en ${horas} (${this.numToLetras(horas)}) hora/s cátedra en el espacio curricular de ${espacio} del ${curso}, en carácter ${situacion};\n\nQue corresponde dictar el instrumento legal correspondiente.`;
-
-      articulos = `Artículo 1º - DESIGNAR en carácter ${situacion} al/la docente ${nombreDocente} en ${horas} (${this.numToLetras(horas)}) hora/s cátedra del espacio curricular ${espacio} del ${curso}, a partir de la fecha que indique el instrumento legal ${instrAlta}.\n\nArtículo 2º - NOTIFICAR al/la docente.\n\nArtículo 3º - TOME RAZÓN Supervisión de Educación Secundaria, Dirección Provincial de Educación Secundaria, Director de Liquidaciones, Director de Control de Sueldos.`;
-
+      visto = `La necesidad de registrar el alta de horas cátedra en el espacio curricular ${espacio}${curso ? ' del ' + curso : ''}.`;
+      considerando = `Que el/la docente ha sido designado/a en ${horas} (${this.numToLetras(horas)}) hora/s cátedra en el espacio curricular de ${espacio}${curso ? ' del ' + curso : ''}, en carácter ${situacion};\n\nQue corresponde dictar el instrumento legal correspondiente.`;
+      articulos = `Artículo 1º - DESIGNAR en carácter ${situacion} al/la docente en ${horas} (${this.numToLetras(horas)}) hora/s cátedra del espacio curricular ${espacio}${curso ? ' del ' + curso : ''}, a partir de la fecha que indique el instrumento legal ${instrAlta}.\n\nArtículo 2º - NOTIFICAR al/la docente.\n\nArtículo 3º - TOME RAZÓN Supervisión de Educación Secundaria, Dirección Provincial de Educación Secundaria, Director de Liquidaciones, Director de Control de Sueldos.`;
     } else if (tipo === 'BAJA_HORAS') {
-      visto = `La necesidad de registrar la baja de horas cátedra correspondiente al/la docente ${nombreDocente}.`;
-
-      considerando = `Que el/la docente ${nombreDocente} cesa en ${horas} (${this.numToLetras(horas)}) hora/s cátedra en el espacio curricular de ${espacio} del ${curso};\n\nQue corresponde dictar el instrumento legal correspondiente.`;
-
-      articulos = `Artículo 1º - CESAR al/la docente ${nombreDocente} en ${horas} (${this.numToLetras(horas)}) hora/s cátedra del espacio curricular ${espacio} del ${curso}, a partir de la fecha que indique el instrumento legal ${instrBaja}.\n\nArtículo 2º - NOTIFICAR al/la docente.\n\nArtículo 3º - TOME RAZÓN Supervisión de Educación Secundaria, Dirección Provincial de Educación Secundaria, Director de Liquidaciones, Director de Control de Sueldos.`;
-
+      visto = `La necesidad de registrar la baja de horas cátedra en el espacio curricular ${espacio}${curso ? ' del ' + curso : ''}.`;
+      considerando = `Que el/la docente cesa en ${horas} (${this.numToLetras(horas)}) hora/s cátedra en el espacio curricular de ${espacio}${curso ? ' del ' + curso : ''};\n\nQue corresponde dictar el instrumento legal correspondiente.`;
+      articulos = `Artículo 1º - CESAR al/la docente en ${horas} (${this.numToLetras(horas)}) hora/s cátedra del espacio curricular ${espacio}${curso ? ' del ' + curso : ''}, a partir de la fecha que indique el instrumento legal ${instrBaja}.\n\nArtículo 2º - NOTIFICAR al/la docente.\n\nArtículo 3º - TOME RAZÓN Supervisión de Educación Secundaria, Dirección Provincial de Educación Secundaria, Director de Liquidaciones, Director de Control de Sueldos.`;
     } else if (tipo === 'CAMBIO_SITUACION_REVISTA') {
-      visto = `La necesidad de regularizar acto administrativo anterior por omisión involuntaria del instrumento legal correspondiente al cambio de situación de revista del/la docente ${nombreDocente}.`;
-
-      considerando = `Que el/la docente ${nombreDocente} había sido designado/a en ${horas} (${this.numToLetras(horas)}) hora/s cátedra en el espacio curricular de ${espacio} del ${curso}, en carácter ${situacion};\n\nQue habiendo operado el cambio de situación de revista, corresponde dictar el instrumento legal correspondiente.`;
-
-      articulos = `Artículo 1º - CAMBIAR LA SITUACIÓN DE REVISTA a ${situacion} al/la docente ${nombreDocente} en ${horas} (${this.numToLetras(horas)}) hora/s cátedra del espacio curricular ${espacio} del ${curso}, a partir de la fecha indicada en el instrumento legal ${instrAlta}.\n\nArtículo 2º - NOTIFICAR al/la docente.\n\nArtículo 3º - TOME RAZÓN Supervisión de Educación Secundaria, Dirección Provincial de Educación Secundaria, Director de Liquidaciones, Director de Control de Sueldos.`;
+      visto = `La necesidad de regularizar acto administrativo anterior por cambio de situación de revista en el espacio curricular ${espacio}${curso ? ' del ' + curso : ''}.`;
+      considerando = `Que el/la docente había sido designado/a en ${horas} (${this.numToLetras(horas)}) hora/s cátedra en el espacio curricular de ${espacio}${curso ? ' del ' + curso : ''}, en carácter ${situacion};\n\nQue habiendo operado el cambio de situación de revista, corresponde dictar el instrumento legal correspondiente.`;
+      articulos = `Artículo 1º - CAMBIAR LA SITUACIÓN DE REVISTA a ${situacion} al/la docente en ${horas} (${this.numToLetras(horas)}) hora/s cátedra del espacio curricular ${espacio}${curso ? ' del ' + curso : ''}, a partir de la fecha indicada en el instrumento legal ${instrAlta}.\n\nArtículo 2º - NOTIFICAR al/la docente.\n\nArtículo 3º - TOME RAZÓN Supervisión de Educación Secundaria, Dirección Provincial de Educación Secundaria, Director de Liquidaciones, Director de Control de Sueldos.`;
     }
 
     this.form.patchValue({ visto, considerando, articulos });
   }
 
-  // Convierte número a letras (básico para horas)
   numToLetras(n?: number): string {
     const letras: Record<number, string> = {
       1: 'una', 2: 'dos', 3: 'tres', 4: 'cuatro', 5: 'cinco',
@@ -276,13 +265,16 @@ export class ActaFormComponent implements OnInit {
   }
 
   verActa(): void {
-    this.actaService.getByMovimiento(this.movimientoId).subscribe(acta => {
-      this.dialog.open(ActaPrintComponent, {
-        data: acta,
-        width: '90vw',
-        maxWidth: '1100px',
-        panelClass: 'print-dialog'
-      });
+    this.actaService.getByMovimiento(this.movimientoId).subscribe(actas => {
+      const acta = actas.find(a => a.id === this.actaId);
+      if (acta) {
+        this.dialog.open(ActaPrintComponent, {
+          data: acta,
+          width: '90vw',
+          maxWidth: '1100px',
+          panelClass: 'print-dialog'
+        });
+      }
     });
   }
 

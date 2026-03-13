@@ -79,23 +79,31 @@ import { Cargo, EspacioCurricular, SituacionRevistaEntity } from 'src/app/core/m
               </div>
 
               <div class="form-row">
-                <mat-form-field appearance="outline">
-                  <mat-label>Curso</mat-label>
-                  <input matInput formControlName="curso" placeholder="Ej: 3°">
-                  <mat-icon matSuffix>class</mat-icon>
-                  @if (form.get('curso')?.errors?.['required'] && form.get('curso')?.touched) {
-                    <mat-error>Campo obligatorio</mat-error>
-                  }
-                </mat-form-field>
+               <mat-form-field appearance="outline">
+                    <mat-label>Curso</mat-label>
+                    <mat-select formControlName="curso">
+                      @for (c of cursos; track c) {
+                        <mat-option [value]="c">{{ c }}</mat-option>
+                      }
+                    </mat-select>
+                    <mat-icon matSuffix>class</mat-icon>
+                    @if (form.get('curso')?.errors?.['required'] && form.get('curso')?.touched) {
+                      <mat-error>Campo obligatorio</mat-error>
+                    }
+                  </mat-form-field>
 
-                <mat-form-field appearance="outline">
-                  <mat-label>División</mat-label>
-                  <input matInput formControlName="division" placeholder="Ej: A">
-                  <mat-icon matSuffix>dns</mat-icon>
-                  @if (form.get('division')?.errors?.['required'] && form.get('division')?.touched) {
-                    <mat-error>Campo obligatorio</mat-error>
-                  }
-                </mat-form-field>
+                  <mat-form-field appearance="outline">
+                    <mat-label>División</mat-label>
+                    <mat-select formControlName="division">
+                      @for (d of divisiones; track d) {
+                        <mat-option [value]="d">{{ d }}</mat-option>
+                      }
+                    </mat-select>
+                    <mat-icon matSuffix>dns</mat-icon>
+                    @if (form.get('division')?.errors?.['required'] && form.get('division')?.touched) {
+                      <mat-error>Campo obligatorio</mat-error>
+                    }
+                  </mat-form-field>
 
                 <mat-form-field appearance="outline">
                   <mat-label>Modalidad</mat-label>
@@ -128,23 +136,31 @@ import { Cargo, EspacioCurricular, SituacionRevistaEntity } from 'src/app/core/m
               <!-- Curso/División solo si el cargo lo requiere (ej: Preceptor) -->
              @if (tipoActual === 'CARGO' && cargoRequiereCurso)  {
                 <div class="form-row">
-                  <mat-form-field appearance="outline">
-                    <mat-label>Curso</mat-label>
-                    <input matInput formControlName="curso" placeholder="Ej: 3°">
-                    <mat-icon matSuffix>class</mat-icon>
-                    @if (form.get('curso')?.errors?.['required'] && form.get('curso')?.touched) {
-                      <mat-error>Campo obligatorio</mat-error>
-                    }
-                  </mat-form-field>
+                 <mat-form-field appearance="outline">
+                            <mat-label>Curso</mat-label>
+                            <mat-select formControlName="curso">
+                              @for (c of cursos; track c) {
+                                <mat-option [value]="c">{{ c }}</mat-option>
+                              }
+                            </mat-select>
+                            <mat-icon matSuffix>class</mat-icon>
+                            @if (form.get('curso')?.errors?.['required'] && form.get('curso')?.touched) {
+                              <mat-error>Campo obligatorio</mat-error>
+                            }
+                          </mat-form-field>
 
-                  <mat-form-field appearance="outline">
-                    <mat-label>División</mat-label>
-                    <input matInput formControlName="division" placeholder="Ej: A">
-                    <mat-icon matSuffix>dns</mat-icon>
-                    @if (form.get('division')?.errors?.['required'] && form.get('division')?.touched) {
-                      <mat-error>Campo obligatorio</mat-error>
-                    }
-                  </mat-form-field>
+                          <mat-form-field appearance="outline">
+                            <mat-label>División</mat-label>
+                            <mat-select formControlName="division">
+                              @for (d of divisiones; track d) {
+                                <mat-option [value]="d">{{ d }}</mat-option>
+                              }
+                            </mat-select>
+                            <mat-icon matSuffix>dns</mat-icon>
+                            @if (form.get('division')?.errors?.['required'] && form.get('division')?.touched) {
+                              <mat-error>Campo obligatorio</mat-error>
+                            }
+                          </mat-form-field>
                 </div>
               }
             }
@@ -266,7 +282,8 @@ export class MovimientoFormComponent implements OnInit {
   docenteId!: number;
   tipoActual: 'HORAS_CATEDRA' | 'CARGO' = 'HORAS_CATEDRA';
   cargoRequiereCurso = false;
-
+cursos = ['1°', '2°', '3°', '4°', '5°', '6°'];
+divisiones = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
   espacios: EspacioCurricular[] = [];
   situaciones: SituacionRevistaEntity[] = [];
   cargos: Cargo[] = [];

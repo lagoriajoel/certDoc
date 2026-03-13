@@ -10,7 +10,7 @@ import { DocenteService } from '../../../core/services/docente.service';
 import { MovimientoService } from '../../../core/services/movimiento.service';
 import { ActaService } from '../../../core/services/acta.service';
 import { Docente, MovimientoHoras, CertificacionResponse } from '../../../core/models/models';
-
+import { ActasDialogComponent } from '../../../shared/components/actas-dialog/actas-dialog.component';
 @Component({
   selector: 'app-docente-detalle',
   standalone: true,
@@ -249,8 +249,11 @@ export class DocenteDetalleComponent implements OnInit {
   }
 
   abrirActa(m: MovimientoHoras): void {
-    this.router.navigate(['/docentes', this.docenteId, 'movimiento', m.id, 'acta']);
-  }
+  this.dialog.open(ActasDialogComponent, {
+    data: { movimiento: m, docenteId: this.docenteId },
+    width: '560px'
+  });
+}
 
   getSituacionClass(nombre?: string): string {
     const map: Record<string, string> = {

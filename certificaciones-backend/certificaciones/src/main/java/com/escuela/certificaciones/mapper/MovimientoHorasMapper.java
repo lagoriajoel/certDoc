@@ -24,7 +24,7 @@ public interface MovimientoHorasMapper {
     @Mapping(target = "espacioCurricular",ignore = true)
     @Mapping(target = "cargo",            ignore = true)
     @Mapping(target = "situacionRevista", ignore = true)
-    @Mapping(target = "acta",             ignore = true)
+    @Mapping(target = "actas",            ignore = true)
     @Mapping(target = "tipo",             ignore = true)
     MovimientoHoras toEntity(MovimientoHorasDTO dto);
 
@@ -32,7 +32,7 @@ public interface MovimientoHorasMapper {
     @Mapping(target = "espacioCurricular",ignore = true)
     @Mapping(target = "cargo",            ignore = true)
     @Mapping(target = "situacionRevista", ignore = true)
-    @Mapping(target = "acta",             ignore = true)
+    @Mapping(target = "actas",            ignore = true)
     @Mapping(target = "tipo",             ignore = true)
     void updateFromDTO(MovimientoHorasDTO dto, @MappingTarget MovimientoHoras entity);
 }
