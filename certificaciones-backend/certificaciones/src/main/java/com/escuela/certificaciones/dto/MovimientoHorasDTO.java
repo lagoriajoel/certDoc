@@ -1,7 +1,7 @@
 package com.escuela.certificaciones.dto;
 
+import com.escuela.certificaciones.entity.MovimientoHoras.TipoMovimiento;
 import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
@@ -15,27 +15,30 @@ import java.time.LocalDate;
 public class MovimientoHorasDTO {
     private Long id;
 
+    // Tipo de movimiento — default HORAS_CATEDRA para compatibilidad con datos existentes
+    private TipoMovimiento tipo = TipoMovimiento.HORAS_CATEDRA;
+
     @NotNull(message = "El docente es obligatorio")
     private Long docenteId;
 
-    @NotNull(message = "El espacio curricular es obligatorio")
+    // ── Campos HORAS_CATEDRA ──
     private Long espacioCurricularId;
-
     private String espacioCurricularNombre;
-
-    @NotBlank(message = "El curso es obligatorio")
-    private String curso;
-
-    @NotBlank(message = "La división es obligatoria")
-    private String division;
-
-    @NotBlank(message = "La modalidad es obligatoria")
     private String modalidad;
 
-    @NotNull(message = "La cantidad de horas es obligatoria")
     @Min(value = 1, message = "La cantidad de horas debe ser mayor a 0")
     private Integer cantidadHoras;
 
+    // ── Campos CARGO ──
+    private Long cargoId;
+    private String cargoNombre;
+    private Boolean cargoRequiereCurso;
+
+    // ── Curso/División (horas cátedra y preceptor) ──
+    private String curso;
+    private String division;
+
+    // ── Campos comunes ──
     @NotNull(message = "La situación de revista es obligatoria")
     private Long situacionRevistaId;
 
@@ -44,7 +47,6 @@ public class MovimientoHorasDTO {
     @NotNull(message = "La fecha de alta es obligatoria")
     private LocalDate fechaAlta;
 
-    @NotBlank(message = "El instrumento legal de alta es obligatorio")
     private String instrumentoLegalAlta;
 
     private LocalDate fechaBaja;

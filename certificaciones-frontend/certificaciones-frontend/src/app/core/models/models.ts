@@ -25,6 +25,10 @@ export enum SituacionRevista {
 // Movimiento de Horas
 // ==========================================
 export interface MovimientoHoras {
+  tipo?: string;
+  cargoNombre?: string;
+  cargoId?: number;
+  cargoRequiereCurso?: boolean;
   id?: number;
   docenteId: number;
   espacioCurricularId: number;
@@ -70,19 +74,28 @@ export interface CertificacionResponse {
    notaPie?: string | null;
 }
 
+//cargo/
+export interface Cargo {
+  id?: number;
+  nombre: string;
+  requiereCurso?: boolean;
+}
+
 export interface MovimientoCertificacion {
   numero: number;
-  espacioCurricular: string;
-  cantidadHoras: number;
-  curso: string;
-  division: string;
-  modalidad: string;
+  tipo: string;
+  espacioCurricular?: string;
+  cargo?: string;
+  cantidadHoras?: number;
+  curso?: string;
+  division?: string;
+  modalidad?: string;
   situacionRevista: string;
   fechaAlta: string;
   instrumentoLegalAlta: string;
-  fechaBaja?: string | null;
-  instrumentoLegalBaja?: string | null;
-  observaciones?: string | null;
+  fechaBaja?: string;
+  instrumentoLegalBaja?: string;
+  observaciones?: string;
 }
 
 // ==========================================

@@ -6,7 +6,8 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { forkJoin } from 'rxjs';
 import { MaterialModule } from '../../../shared/material/material.module';
 import { MovimientoService } from 'src/app/core/services/movimiento.service';
-import { EspacioCurricular, SituacionRevistaEntity } from 'src/app/core/models/models'
+import { CargoService } from 'src/app/core/services/cargo.service';
+import { Cargo, EspacioCurricular, SituacionRevistaEntity } from 'src/app/core/models/models';
 
 @Component({
   selector: 'app-movimiento-form',
@@ -20,7 +21,7 @@ import { EspacioCurricular, SituacionRevistaEntity } from 'src/app/core/models/m
         </button>
         <div>
           <h1 class="page-title">{{ isEditing ? 'Editar Movimiento' : 'Nuevo Movimiento' }}</h1>
-          <span class="page-subtitle">{{ isEditing ? 'Modificar movimiento de horas' : 'Registrar movimiento de horas docentes' }}</span>
+          <span class="page-subtitle">{{ isEditing ? 'Modificar movimiento' : 'Registrar movimiento de horas o cargo' }}</span>
         </div>
       </div>
 
@@ -34,21 +35,122 @@ import { EspacioCurricular, SituacionRevistaEntity } from 'src/app/core/models/m
         <mat-card-content>
           <form [formGroup]="form" (ngSubmit)="onSubmit()" class="mov-form">
 
-            <!-- Fila 1 -->
-            <div class="form-row">
-              <mat-form-field appearance="outline">
-                <mat-label>Espacio Curricular</mat-label>
-                <mat-select formControlName="espacioCurricularId">
-                  @for (e of espacios; track e.id) {
-                    <mat-option [value]="e.id">{{ e.nombre }}</mat-option>
-                  }
-                </mat-select>
-                <mat-icon matSuffix>menu_book</mat-icon>
-                @if (form.get('espacioCurricularId')?.errors?.['required'] && form.get('espacioCurricularId')?.touched) {
-                  <mat-error>Campo obligatorio</mat-error>
-                }
-              </mat-form-field>
+            <!-- Tipo de movimiento -->
+            <div class="tipo-selector">
+              <button type="button" class="tipo-btn" [class.active]="tipoActual === 'HORAS_CATEDRA'"
+                (click)="setTipo('HORAS_CATEDRA')">
+                <mat-icon>timer</mat-icon>
+                <span>Horas Cátedra</span>
+              </button>
+              <button type="button" class="tipo-btn" [class.active]="tipoActual === 'CARGO'"
+                (click)="setTipo('CARGO')">
+                <mat-icon>work</mat-icon>
+                <span>Cargo</span>
+              </button>
+            </div>
 
+            <!-- ── HORAS CÁTEDRA ── -->
+            @if (tipoActual === 'HORAS_CATEDRA') {
+              <div class="form-row">
+                <mat-form-field appearance="outline" class="span-2">
+                  <mat-label>Espacio Curricular</mat-label>
+                  <mat-select formControlName="espacioCurricularId">
+                    @for (e of espacios; track e.id) {
+                      <mat-option [value]="e.id">{{ e.nombre }}</mat-option>
+                    }
+                  </mat-select>
+                  <mat-icon matSuffix>menu_book</mat-icon>
+                  @if (form.get('espacioCurricularId')?.errors?.['required'] && form.get('espacioCurricularId')?.touched) {
+                    <mat-error>Campo obligatorio</mat-error>
+                  }
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                  <mat-label>Cantidad de Horas</mat-label>
+                  <input matInput type="number" formControlName="cantidadHoras" min="1" max="40">
+                  <mat-icon matSuffix>timer</mat-icon>
+                  @if (form.get('cantidadHoras')?.errors?.['required'] && form.get('cantidadHoras')?.touched) {
+                    <mat-error>Campo obligatorio</mat-error>
+                  }
+                  @if (form.get('cantidadHoras')?.errors?.['min']) {
+                    <mat-error>Mínimo 1 hora</mat-error>
+                  }
+                </mat-form-field>
+              </div>
+
+              <div class="form-row">
+                <mat-form-field appearance="outline">
+                  <mat-label>Curso</mat-label>
+                  <input matInput formControlName="curso" placeholder="Ej: 3°">
+                  <mat-icon matSuffix>class</mat-icon>
+                  @if (form.get('curso')?.errors?.['required'] && form.get('curso')?.touched) {
+                    <mat-error>Campo obligatorio</mat-error>
+                  }
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                  <mat-label>División</mat-label>
+                  <input matInput formControlName="division" placeholder="Ej: A">
+                  <mat-icon matSuffix>dns</mat-icon>
+                  @if (form.get('division')?.errors?.['required'] && form.get('division')?.touched) {
+                    <mat-error>Campo obligatorio</mat-error>
+                  }
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                  <mat-label>Modalidad</mat-label>
+                  <input matInput formControlName="modalidad" placeholder="Ej: Presencial">
+                  <mat-icon matSuffix>school</mat-icon>
+                  @if (form.get('modalidad')?.errors?.['required'] && form.get('modalidad')?.touched) {
+                    <mat-error>Campo obligatorio</mat-error>
+                  }
+                </mat-form-field>
+              </div>
+            }
+
+            <!-- ── CARGO ── -->
+            @if (tipoActual === 'CARGO') {
+              <div class="form-row">
+                <mat-form-field appearance="outline" class="span-2">
+                  <mat-label>Cargo</mat-label>
+                  <mat-select formControlName="cargoId" (selectionChange)="onCargoChange($event.value)">
+                    @for (c of cargos; track c.id) {
+                      <mat-option [value]="c.id">{{ c.nombre }}</mat-option>
+                    }
+                  </mat-select>
+                  <mat-icon matSuffix>work</mat-icon>
+                  @if (form.get('cargoId')?.errors?.['required'] && form.get('cargoId')?.touched) {
+                    <mat-error>Campo obligatorio</mat-error>
+                  }
+                </mat-form-field>
+              </div>
+
+              <!-- Curso/División solo si el cargo lo requiere (ej: Preceptor) -->
+             @if (tipoActual === 'CARGO' && cargoRequiereCurso)  {
+                <div class="form-row">
+                  <mat-form-field appearance="outline">
+                    <mat-label>Curso</mat-label>
+                    <input matInput formControlName="curso" placeholder="Ej: 3°">
+                    <mat-icon matSuffix>class</mat-icon>
+                    @if (form.get('curso')?.errors?.['required'] && form.get('curso')?.touched) {
+                      <mat-error>Campo obligatorio</mat-error>
+                    }
+                  </mat-form-field>
+
+                  <mat-form-field appearance="outline">
+                    <mat-label>División</mat-label>
+                    <input matInput formControlName="division" placeholder="Ej: A">
+                    <mat-icon matSuffix>dns</mat-icon>
+                    @if (form.get('division')?.errors?.['required'] && form.get('division')?.touched) {
+                      <mat-error>Campo obligatorio</mat-error>
+                    }
+                  </mat-form-field>
+                </div>
+              }
+            }
+
+            <!-- Situación de revista — siempre visible -->
+            <div class="form-row">
               <mat-form-field appearance="outline">
                 <mat-label>Situación de Revista</mat-label>
                 <mat-select formControlName="situacionRevistaId">
@@ -61,51 +163,9 @@ import { EspacioCurricular, SituacionRevistaEntity } from 'src/app/core/models/m
                   <mat-error>Campo obligatorio</mat-error>
                 }
               </mat-form-field>
-
-              <mat-form-field appearance="outline">
-                <mat-label>Cantidad de Horas</mat-label>
-                <input matInput type="number" formControlName="cantidadHoras" min="1" max="40">
-                <mat-icon matSuffix>timer</mat-icon>
-                @if (form.get('cantidadHoras')?.errors?.['required'] && form.get('cantidadHoras')?.touched) {
-                  <mat-error>Campo obligatorio</mat-error>
-                }
-                @if (form.get('cantidadHoras')?.errors?.['min']) {
-                  <mat-error>Mínimo 1 hora</mat-error>
-                }
-              </mat-form-field>
             </div>
 
-            <!-- Fila 2 -->
-            <div class="form-row">
-              <mat-form-field appearance="outline">
-                <mat-label>Curso</mat-label>
-                <input matInput formControlName="curso" placeholder="Ej: 3°">
-                <mat-icon matSuffix>class</mat-icon>
-                @if (form.get('curso')?.errors?.['required'] && form.get('curso')?.touched) {
-                  <mat-error>Campo obligatorio</mat-error>
-                }
-              </mat-form-field>
-
-              <mat-form-field appearance="outline">
-                <mat-label>División</mat-label>
-                <input matInput formControlName="division" placeholder="Ej: A">
-                <mat-icon matSuffix>dns</mat-icon>
-                @if (form.get('division')?.errors?.['required'] && form.get('division')?.touched) {
-                  <mat-error>Campo obligatorio</mat-error>
-                }
-              </mat-form-field>
-
-              <mat-form-field appearance="outline">
-                <mat-label>Modalidad</mat-label>
-                <input matInput formControlName="modalidad" placeholder="Ej: Presencial">
-                <mat-icon matSuffix>school</mat-icon>
-                @if (form.get('modalidad')?.errors?.['required'] && form.get('modalidad')?.touched) {
-                  <mat-error>Campo obligatorio</mat-error>
-                }
-              </mat-form-field>
-            </div>
-
-            <!-- Fila 3: Alta -->
+            <!-- Alta -->
             <div class="form-section-label">Alta</div>
             <div class="form-row">
               <mat-form-field appearance="outline">
@@ -128,7 +188,7 @@ import { EspacioCurricular, SituacionRevistaEntity } from 'src/app/core/models/m
               </mat-form-field>
             </div>
 
-            <!-- Fila 4: Baja (opcional) -->
+            <!-- Baja -->
             <div class="form-section-label">Baja <span class="optional">(opcional)</span></div>
             <div class="form-row">
               <mat-form-field appearance="outline">
@@ -148,7 +208,8 @@ import { EspacioCurricular, SituacionRevistaEntity } from 'src/app/core/models/m
             <!-- Observaciones -->
             <mat-form-field appearance="outline" class="full-width">
               <mat-label>Observaciones</mat-label>
-              <textarea matInput formControlName="observaciones" rows="3" placeholder="Información adicional..."></textarea>
+              <textarea matInput formControlName="observaciones" rows="3"
+                placeholder="Información adicional..."></textarea>
             </mat-form-field>
 
             <div class="form-actions">
@@ -181,6 +242,20 @@ import { EspacioCurricular, SituacionRevistaEntity } from 'src/app/core/models/m
     .full-width { width: 100%; }
     .form-actions { display: flex; gap: 12px; justify-content: flex-end; padding-top: 16px; border-top: 1px solid #f1f5f9; margin-top: 8px; }
     mat-form-field { width: 100%; }
+
+    /* Tipo selector */
+    .tipo-selector { display: flex; gap: 12px; margin-bottom: 8px; }
+    .tipo-btn {
+      display: flex; align-items: center; gap: 8px;
+      padding: 10px 20px; border-radius: 10px; border: 2px solid #e2e8f0;
+      background: white; color: #64748b; font-size: 0.9rem; font-weight: 600;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .tipo-btn mat-icon { font-size: 1.1rem; width: 1.1rem; height: 1.1rem; }
+    .tipo-btn:hover { border-color: #3b82f6; color: #3b82f6; }
+    .tipo-btn.active { border-color: #3b82f6; background: #eff6ff; color: #3b82f6; }
+    .tipo-btn.active mat-icon { color: #3b82f6; }
+
     @media (max-width: 768px) { .form-row { grid-template-columns: 1fr; } .form-row .span-2 { grid-column: span 1; } }
   `]
 })
@@ -189,12 +264,17 @@ export class MovimientoFormComponent implements OnInit {
   isEditing = false;
   movimientoId?: number;
   docenteId!: number;
+  tipoActual: 'HORAS_CATEDRA' | 'CARGO' = 'HORAS_CATEDRA';
+  cargoRequiereCurso = false;
+
   espacios: EspacioCurricular[] = [];
   situaciones: SituacionRevistaEntity[] = [];
+  cargos: Cargo[] = [];
 
   constructor(
     private fb: FormBuilder,
     private movimientoService: MovimientoService,
+    private cargoService: CargoService,
     private router: Router,
     private route: ActivatedRoute,
     private snackBar: MatSnackBar
@@ -211,29 +291,41 @@ export class MovimientoFormComponent implements OnInit {
 
   buildForm(): void {
     this.form = this.fb.group({
-      espacioCurricularId: [null, Validators.required],
-      situacionRevistaId: [null, Validators.required],
-      cantidadHoras: [null, [Validators.required, Validators.min(1)]],
-      curso: ['', Validators.required],
-      division: ['', Validators.required],
-      modalidad: ['', Validators.required],
-      fechaAlta: [null, Validators.required],
-      instrumentoLegalAlta: ['', Validators.required],
-      fechaBaja: [null],
-      instrumentoLegalBaja: [''],
-      observaciones: ['']
+      tipo:                  ['HORAS_CATEDRA'],
+      // Horas cátedra
+      espacioCurricularId:   [null],
+      cantidadHoras:         [null, Validators.min(1)],
+      modalidad:             [''],
+      // Cargo
+      cargoId:               [null],
+      // Curso/División (compartido)
+      curso:                 [''],
+      division:              [''],
+      // Comunes
+      situacionRevistaId:    [null, Validators.required],
+      fechaAlta:             [null, Validators.required],
+      instrumentoLegalAlta:  ['', Validators.required],
+      fechaBaja:             [null],
+      instrumentoLegalBaja:  [''],
+      observaciones:         ['']
     });
   }
 
   loadCatalogs(): void {
     forkJoin({
-      espacios: this.movimientoService.getEspaciosCurriculares(),
-      situaciones: this.movimientoService.getSituacionesRevista()
-    }).subscribe(({ espacios, situaciones }) => {
-      this.espacios = espacios;
+      espacios:   this.movimientoService.getEspaciosCurriculares(),
+      situaciones: this.movimientoService.getSituacionesRevista(),
+      cargos:     this.cargoService.getAll()
+    }).subscribe(({ espacios, situaciones, cargos }) => {
+      this.espacios   = espacios;
       this.situaciones = situaciones;
+      this.cargos     = cargos;
+
       if (this.isEditing) {
-        this.movimientoService.getById(this.movimientoId!).subscribe((m: { [x: string]: any; fechaAlta?: any; fechaBaja?: any; }) => {
+        this.movimientoService.getById(this.movimientoId!).subscribe((m: any) => {
+          this.tipoActual = m.tipo || 'HORAS_CATEDRA';
+          this.actualizarValidaciones(this.tipoActual);
+          if (m.cargoRequiereCurso) this.cargoRequiereCurso = true;
           this.form.patchValue({
             ...m,
             fechaAlta: m.fechaAlta ? new Date(m.fechaAlta) : null,
@@ -242,6 +334,52 @@ export class MovimientoFormComponent implements OnInit {
         });
       }
     });
+  }
+
+  setTipo(tipo: 'HORAS_CATEDRA' | 'CARGO'): void {
+    this.tipoActual = tipo;
+    this.form.patchValue({ tipo, cargoId: null, espacioCurricularId: null,
+      cantidadHoras: null, modalidad: '', curso: '', division: '' });
+    this.cargoRequiereCurso = false;
+    this.actualizarValidaciones(tipo);
+  }
+
+  onCargoChange(cargoId: number): void {
+    const cargo = this.cargos.find(c => c.id === cargoId);
+    this.cargoRequiereCurso = cargo?.requiereCurso === true;
+    this.actualizarValidaciones('CARGO');
+    this.form.updateValueAndValidity();
+  }
+
+  actualizarValidaciones(tipo: 'HORAS_CATEDRA' | 'CARGO'): void {
+    const ec   = this.form.get('espacioCurricularId')!;
+    const hs   = this.form.get('cantidadHoras')!;
+    const mod  = this.form.get('modalidad')!;
+    const cId  = this.form.get('cargoId')!;
+    const cur  = this.form.get('curso')!;
+    const div  = this.form.get('division')!;
+
+    if (tipo === 'HORAS_CATEDRA') {
+      ec.setValidators(Validators.required);
+      hs.setValidators([Validators.required, Validators.min(1)]);
+      mod.setValidators(Validators.required);
+      cur.setValidators(Validators.required);
+      div.setValidators(Validators.required);
+      cId.clearValidators();
+    } else {
+      cId.setValidators(Validators.required);
+      ec.clearValidators();
+      hs.clearValidators();
+      mod.clearValidators();
+      if (this.cargoRequiereCurso) {
+        cur.setValidators(Validators.required);
+        div.setValidators(Validators.required);
+      } else {
+        cur.clearValidators();
+        div.clearValidators();
+      }
+    }
+    [ec, hs, mod, cId, cur, div].forEach(c => c.updateValueAndValidity());
   }
 
   onSubmit(): void {
@@ -268,9 +406,7 @@ export class MovimientoFormComponent implements OnInit {
   }
 
   toDateStr(date: Date): string {
-    return date instanceof Date
-      ? date.toISOString().split('T')[0]
-      : date;
+    return date instanceof Date ? date.toISOString().split('T')[0] : date;
   }
 
   volver(): void {

@@ -4,6 +4,7 @@ import com.escuela.certificaciones.dto.CertificacionResponseDTO;
 import com.escuela.certificaciones.dto.MovimientoCertificacionDTO;
 import com.escuela.certificaciones.entity.Docente;
 import com.escuela.certificaciones.entity.MovimientoHoras;
+import com.escuela.certificaciones.entity.MovimientoHoras.TipoMovimiento;
 import com.escuela.certificaciones.exception.ResourceNotFoundException;
 import com.escuela.certificaciones.pdf.PdfCertificacionGenerator;
 import com.escuela.certificaciones.repository.DocenteRepository;
@@ -39,8 +40,11 @@ public class CertificacionService {
                 .map(m -> mapToMovimientoCertificacion(m, counter.getAndIncrement()))
                 .collect(Collectors.toList());
 
+        // Total horas activas — solo cuenta movimientos de horas cátedra
         int totalHorasActivas = movimientos.stream()
                 .filter(m -> m.getFechaBaja() == null)
+                .filter(m -> m.getTipo() == TipoMovimiento.HORAS_CATEDRA)
+                .filter(m -> m.getCantidadHoras() != null)
                 .mapToInt(MovimientoHoras::getCantidadHoras)
                 .sum();
 
@@ -66,19 +70,32 @@ public class CertificacionService {
                     : "Continúa";
         }
 
-        return MovimientoCertificacionDTO.builder()
-                .numero(numero)
-                .espacioCurricular(m.getEspacioCurricular().getNombre())
-                .cantidadHoras(m.getCantidadHoras())
-                .curso(m.getCurso())
-                .division(m.getDivision())
-                .modalidad(m.getModalidad())
-                .situacionRevista(m.getSituacionRevista().getNombre())
-                .fechaAlta(m.getFechaAlta())
-                .instrumentoLegalAlta(m.getInstrumentoLegalAlta())
-                .fechaBaja(m.getFechaBaja())
-                .instrumentoLegalBaja(m.getInstrumentoLegalBaja())
-                .observaciones(observaciones)
-                .build();
+        MovimientoCertificacionDTO.MovimientoCertificacionDTOBuilder builder =
+                MovimientoCertificacionDTO.builder()
+                        .numero(numero)
+                        .tipo(m.getTipo())
+                        .situacionRevista(m.getSituacionRevista().getNombre())
+                        .fechaAlta(m.getFechaAlta())
+                        .instrumentoLegalAlta(m.getInstrumentoLegalAlta())
+                        .fechaBaja(m.getFechaBaja())
+                        .instrumentoLegalBaja(m.getInstrumentoLegalBaja())
+                        .observaciones(observaciones);
+
+        if (m.getTipo() == TipoMovimiento.HORAS_CATEDRA) {
+            builder
+                    .espacioCurricular(m.getEspacioCurricular() != null ? m.getEspacioCurricular().getNombre() : "")
+                    .cantidadHoras(m.getCantidadHoras())
+                    .modalidad(m.getModalidad())
+                    .curso(m.getCurso())
+                    .division(m.getDivision());
+        } else {
+            // CARGO
+            builder
+                    .cargo(m.getCargo() != null ? m.getCargo().getNombre() : "")
+                    .curso(m.getCurso())      // null para Rector/Secretario, valor para Preceptor
+                    .division(m.getDivision());
+        }
+
+        return builder.build();
     }
 }

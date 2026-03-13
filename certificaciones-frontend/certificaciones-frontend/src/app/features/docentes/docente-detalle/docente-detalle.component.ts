@@ -78,10 +78,10 @@ import { Docente, MovimientoHoras, CertificacionResponse } from '../../../core/m
             <table mat-table [dataSource]="movimientos" class="movimientos-table">
 
               <ng-container matColumnDef="espacioCurricular">
-                <th mat-header-cell *matHeaderCellDef>Espacio Curricular</th>
-                <td mat-cell *matCellDef="let m">
-                  <strong>{{ m.espacioCurricularNombre }}</strong>
-                </td>
+                <th mat-header-cell *matHeaderCellDef>Espacio Curricular / Cargo</th>
+                    <td mat-cell *matCellDef="let m">
+                      <strong>{{ m.espacioCurricularNombre || m.cargoNombre }}</strong>
+                    </td>
               </ng-container>
 
               <ng-container matColumnDef="cursoDiv">
@@ -92,8 +92,12 @@ import { Docente, MovimientoHoras, CertificacionResponse } from '../../../core/m
               <ng-container matColumnDef="horas">
                 <th mat-header-cell *matHeaderCellDef>Horas</th>
                 <td mat-cell *matCellDef="let m">
-                  <span class="horas-badge">{{ m.cantidadHoras }}h</span>
-                </td>
+                      @if (m.tipo === 'HORAS_CATEDRA') {
+                        <span class="horas-badge">{{ m.cantidadHoras }}h</span>
+                      } @else {
+                        <span class="cargo-badge">1 cargo</span>
+                      }
+                    </td>
               </ng-container>
 
               <ng-container matColumnDef="situacion">
@@ -180,6 +184,7 @@ import { Docente, MovimientoHoras, CertificacionResponse } from '../../../core/m
     .table-card { border-radius: 12px !important; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.08) !important; }
     .table-wrapper { overflow-x: auto; }
     .movimientos-table { width: 100%; }
+    .cargo-badge { background: #f3e8ff; color: #7c3aed; padding: 2px 10px; border-radius: 20px; font-weight: 700; font-size: 0.85rem; }
     .horas-badge { background: #dbeafe; color: #1d4ed8; padding: 2px 10px; border-radius: 20px; font-weight: 700; font-size: 0.85rem; }
     .activo-chip { background: #dcfce7; color: #15803d; padding: 2px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; }
     .situacion-chip { padding: 3px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; }
@@ -225,9 +230,9 @@ export class DocenteDetalleComponent implements OnInit {
   loadMovimientos(): void {
     this.movimientoService.getByDocente(this.docenteId).subscribe(list => {
       this.movimientos = list;
-      this.totalHorasActivas = list
-        .filter(m => !m.fechaBaja)
-        .reduce((sum, m) => sum + m.cantidadHoras, 0);
+     this.totalHorasActivas = list
+  .filter(m => !m.fechaBaja && m.tipo === 'HORAS_CATEDRA')
+  .reduce((sum, m) => sum + (m.cantidadHoras || 0), 0);
       this.verificarActas(list);
     });
   }

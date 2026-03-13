@@ -27,5 +27,9 @@ export const routes: Routes = [
     loadChildren: () =>
       import('./features/usuarios/usuarios.routes').then(m => m.USUARIOS_ROUTES)
   },
+  {
+  path: 'cargos',
+  loadChildren: () => import('./features/cargos/cargos.routes').then(m => m.CARGOS_ROUTES)
+},
   { path: '**', redirectTo: 'docentes' }
 ];

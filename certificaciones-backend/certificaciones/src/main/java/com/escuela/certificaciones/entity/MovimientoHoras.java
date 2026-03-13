@@ -14,34 +14,52 @@ import java.time.LocalDate;
 @Builder
 public class MovimientoHoras {
 
+    public enum TipoMovimiento {
+        HORAS_CATEDRA,
+        CARGO
+    }
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    // ── Tipo de movimiento ──────────────────────────────
+    @Enumerated(EnumType.STRING)
+    @Column(name = "tipo", nullable = false, length = 20)
+    private TipoMovimiento tipo = TipoMovimiento.HORAS_CATEDRA;
+
+    // ── Docente ─────────────────────────────────────────
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "docente_id", nullable = false)
     private Docente docente;
 
+    // ── Campos para HORAS_CATEDRA (nullable para CARGO) ─
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "espacio_curricular_id", nullable = false)
+    @JoinColumn(name = "espacio_curricular_id", nullable = true)
     private EspacioCurricular espacioCurricular;
 
-    @Column(nullable = false, length = 20)
-    private String curso;
-
-    @Column(nullable = false, length = 10)
-    private String division;
-
-    @Column(nullable = false, length = 100)
+    @Column(length = 100)
     private String modalidad;
 
-    @Column(nullable = false)
+    @Column(name = "cantidad_horas")
     private Integer cantidadHoras;
 
+    // ── Campos para CARGO (nullable para HORAS_CATEDRA) ─
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "cargo_id", nullable = true)
+    private Cargo cargo;
+
+    // ── Curso y División (HORAS_CATEDRA y Preceptor) ────
+    @Column(length = 20)
+    private String curso;
+
+    @Column(length = 10)
+    private String division;
+
+    // ── Campos comunes ───────────────────────────────────
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "situacion_revista_id", nullable = false)
     private SituacionRevista situacionRevista;
-
 
     @Column(nullable = false)
     private LocalDate fechaAlta;

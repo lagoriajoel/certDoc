@@ -35,6 +35,12 @@ import { AuthService } from './core/services/auth.service';
                 <mat-icon matListItemIcon>menu_book</mat-icon>
                 <span matListItemTitle>Espacios Curriculares</span>
               </a>
+              <a mat-list-item routerLink="/cargos" routerLinkActive="active-link">
+                <mat-icon matListItemIcon>work</mat-icon>
+                <span matListItemTitle>Cargos</span>
+              </a>
+              
+              
 
               <!-- Solo visible para ADMIN -->
               @if (authService.esAdmin()) {
@@ -96,8 +102,9 @@ import { AuthService } from './core/services/auth.service';
     .brand-subtitle { font-size: 0.7rem; color: #64748b; }
 
     .nav-list { padding-top: 8px; flex: 1; }
-    .nav-list a { color: #94a3b8; border-radius: 8px; margin: 2px 8px; }
-    .nav-list a mat-icon { color: #64748b; }
+     .nav-list a { color: #f1f5f9 !important; border-radius: 8px; margin: 2px 8px; }
+.nav-list a .mdc-list-item__primary-text { color: #f1f5f9 !important; }
+    .nav-list a mat-icon { color: #94a3b8; }
     .nav-list a.active-link { background: rgba(59,130,246,0.15) !important; color: #60a5fa !important; }
     .nav-list a.active-link mat-icon { color: #60a5fa !important; }
 

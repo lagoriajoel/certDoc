@@ -80,7 +80,7 @@ import { CertificacionResponse } from '../../../core/models/models';
           <thead>
             <tr>
               <th>Nº</th>
-              <th>E. Curricular</th>
+             <th>E. Curricular / Cargo</th>
               <th>Hs.</th>
               <th>Curso</th>
               <th>Div.</th>
@@ -94,22 +94,22 @@ import { CertificacionResponse } from '../../../core/models/models';
             </tr>
           </thead>
           <tbody>
-            @for (m of cert.movimientos; track m.numero) {
-              <tr>
-                <td class="center">{{ m.numero }}</td>
-                <td>{{ m.espacioCurricular }}</td>
-                <td class="center"><strong>{{ m.cantidadHoras }}</strong></td>
-                <td class="center">{{ m.curso }}</td>
-                <td class="center">{{ m.division }}</td>
-                <td>{{ m.modalidad }}</td>
-                <td>{{ m.situacionRevista }}</td>
-                <td class="center">{{ m.fechaAlta | date:'dd/MM/yy' }}</td>
-                <td>{{ m.instrumentoLegalAlta }}</td>
-                <td class="center">{{ m.fechaBaja ? (m.fechaBaja | date:'dd/MM/yy') : '—' }}</td>
-                <td>{{ m.instrumentoLegalBaja || '—' }}</td>
-                <td>{{ m.observaciones || '' }}</td>
-              </tr>
-            }
+           @for (m of cert.movimientos; track m.numero) {
+                  <tr>
+                    <td class="center">{{ m.numero }}</td>
+                    <td>{{ m.tipo === 'CARGO' ? m.cargo : m.espacioCurricular }}</td>
+                    <td class="center">{{ m.tipo === 'HORAS_CATEDRA' ? m.cantidadHoras : '—' }}</td>
+                    <td class="center">{{ m.curso || '—' }}</td>
+                    <td class="center">{{ m.division || '—' }}</td>
+                    <td>{{ m.tipo === 'HORAS_CATEDRA' ? m.modalidad : '—' }}</td>
+                    <td>{{ m.situacionRevista }}</td>
+                    <td class="center">{{ m.fechaAlta | date:'dd/MM/yy' }}</td>
+                    <td>{{ m.instrumentoLegalAlta }}</td>
+                    <td class="center">{{ m.fechaBaja ? (m.fechaBaja | date:'dd/MM/yy') : '—' }}</td>
+                    <td>{{ m.instrumentoLegalBaja || '—' }}</td>
+                    <td>{{ m.observaciones || '' }}</td>
+                  </tr>
+                }
           </tbody>
         </table>
 

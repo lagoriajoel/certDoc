@@ -2,8 +2,10 @@ package com.escuela.certificaciones.service;
 
 import com.escuela.certificaciones.dto.MovimientoHorasDTO;
 import com.escuela.certificaciones.entity.MovimientoHoras;
+import com.escuela.certificaciones.entity.MovimientoHoras.TipoMovimiento;
 import com.escuela.certificaciones.exception.ResourceNotFoundException;
 import com.escuela.certificaciones.mapper.MovimientoHorasMapper;
+import com.escuela.certificaciones.repository.CargoRepository;
 import com.escuela.certificaciones.repository.DocenteRepository;
 import com.escuela.certificaciones.repository.EspacioCurricularRepository;
 import com.escuela.certificaciones.repository.MovimientoHorasRepository;
@@ -24,6 +26,7 @@ public class MovimientoHorasService {
     private final DocenteRepository docenteRepository;
     private final EspacioCurricularRepository espacioRepository;
     private final SituacionRevistaRepository situacionRepository;
+    private final CargoRepository cargoRepository;
     private final MovimientoHorasMapper mapper;
 
     @Transactional(readOnly = true)
@@ -46,7 +49,6 @@ public class MovimientoHorasService {
                 .stream().map(mapper::toDTO).collect(Collectors.toList());
     }
 
-    // ── Crear — construye la entidad con new para garantizar id = null ──
     public MovimientoHorasDTO create(MovimientoHorasDTO dto) {
         MovimientoHoras entity = new MovimientoHoras();
         setRelationsAndFields(entity, dto);
@@ -54,7 +56,6 @@ public class MovimientoHorasService {
         return mapper.toDTO(saved);
     }
 
-    // ── Actualizar — busca la entidad existente y la actualiza ──
     public MovimientoHorasDTO update(Long id, MovimientoHorasDTO dto) {
         MovimientoHoras entity = movimientoRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("MovimientoHoras", id));
@@ -69,24 +70,48 @@ public class MovimientoHorasService {
         movimientoRepository.deleteById(id);
     }
 
-    // ── Método compartido para setear campos y relaciones ──
     private void setRelationsAndFields(MovimientoHoras entity, MovimientoHorasDTO dto) {
+        TipoMovimiento tipo = dto.getTipo() != null ? dto.getTipo() : TipoMovimiento.HORAS_CATEDRA;
+        entity.setTipo(tipo);
+
         entity.setDocente(
                 docenteRepository.findById(dto.getDocenteId())
                         .orElseThrow(() -> new ResourceNotFoundException("Docente", dto.getDocenteId()))
-        );
-        entity.setEspacioCurricular(
-                espacioRepository.findById(dto.getEspacioCurricularId())
-                        .orElseThrow(() -> new ResourceNotFoundException("EspacioCurricular", dto.getEspacioCurricularId()))
         );
         entity.setSituacionRevista(
                 situacionRepository.findById(dto.getSituacionRevistaId())
                         .orElseThrow(() -> new ResourceNotFoundException("SituacionRevista", dto.getSituacionRevistaId()))
         );
-        entity.setCantidadHoras(dto.getCantidadHoras());
-        entity.setCurso(dto.getCurso());
-        entity.setDivision(dto.getDivision());
-        entity.setModalidad(dto.getModalidad());
+
+        if (tipo == TipoMovimiento.HORAS_CATEDRA) {
+            if (dto.getEspacioCurricularId() == null) {
+                throw new IllegalArgumentException("El espacio curricular es obligatorio para movimientos de horas cátedra");
+            }
+            entity.setEspacioCurricular(
+                    espacioRepository.findById(dto.getEspacioCurricularId())
+                            .orElseThrow(() -> new ResourceNotFoundException("EspacioCurricular", dto.getEspacioCurricularId()))
+            );
+            entity.setCargo(null);
+            entity.setCantidadHoras(dto.getCantidadHoras());
+            entity.setModalidad(dto.getModalidad());
+            entity.setCurso(dto.getCurso());
+            entity.setDivision(dto.getDivision());
+        } else {
+            if (dto.getCargoId() == null) {
+                throw new IllegalArgumentException("El cargo es obligatorio para movimientos de cargo");
+            }
+            entity.setCargo(
+                    cargoRepository.findById(dto.getCargoId())
+                            .orElseThrow(() -> new ResourceNotFoundException("Cargo", dto.getCargoId()))
+            );
+            entity.setEspacioCurricular(null);
+            entity.setCantidadHoras(null);
+            entity.setModalidad(null);
+            boolean requiereCurso = Boolean.TRUE.equals(entity.getCargo().getRequiereCurso());
+            entity.setCurso(requiereCurso ? dto.getCurso() : null);
+            entity.setDivision(requiereCurso ? dto.getDivision() : null);
+        }
+
         entity.setFechaAlta(dto.getFechaAlta());
         entity.setInstrumentoLegalAlta(dto.getInstrumentoLegalAlta());
         entity.setFechaBaja(dto.getFechaBaja());

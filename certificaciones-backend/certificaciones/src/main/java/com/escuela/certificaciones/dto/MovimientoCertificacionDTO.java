@@ -1,5 +1,6 @@
 package com.escuela.certificaciones.dto;
 
+import com.escuela.certificaciones.entity.MovimientoHoras.TipoMovimiento;
 import lombok.*;
 
 import java.time.LocalDate;
@@ -11,11 +12,21 @@ import java.time.LocalDate;
 @Builder
 public class MovimientoCertificacionDTO {
     private Integer numero;
+    private TipoMovimiento tipo;
+
+    // HORAS_CATEDRA
     private String espacioCurricular;
     private Integer cantidadHoras;
+    private String modalidad;
+
+    // CARGO
+    private String cargo;
+
+    // Horas cátedra y Preceptor
     private String curso;
     private String division;
-    private String modalidad;
+
+    // Comunes
     private String situacionRevista;
     private LocalDate fechaAlta;
     private String instrumentoLegalAlta;
