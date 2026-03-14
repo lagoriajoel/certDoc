@@ -201,11 +201,7 @@ export class ActaFormComponent implements OnInit {
 
     let visto = '', considerando = '', articulos = '';
     // Pre-cargar número de disposición según tipo
-      if (tipo === 'ALTA_HORAS' || tipo === 'CAMBIO_SITUACION_REVISTA') {
-        this.form.patchValue({ numeroDisposicion: instrAlta });
-      } else if (tipo === 'BAJA_HORAS') {
-        this.form.patchValue({ numeroDisposicion: instrBaja });
-      }
+     
 
     if (tipo === 'ALTA_HORAS') {
       visto = `La necesidad de registrar el alta de horas cátedra en el espacio curricular ${espacio}${curso ? ' del ' + curso : ''}.`;
@@ -220,6 +216,11 @@ export class ActaFormComponent implements OnInit {
       considerando = `Que el/la docente había sido designado/a en ${horas} (${this.numToLetras(horas)}) hora/s cátedra en el espacio curricular de ${espacio}${curso ? ' del ' + curso : ''}, en carácter ${situacion};\n\nQue habiendo operado el cambio de situación de revista, corresponde dictar el instrumento legal correspondiente.`;
       articulos = `Artículo 1º - CAMBIAR LA SITUACIÓN DE REVISTA a ${situacion} al/la docente en ${horas} (${this.numToLetras(horas)}) hora/s cátedra del espacio curricular ${espacio}${curso ? ' del ' + curso : ''}, a partir de la fecha indicada en el instrumento legal ${instrAlta}.\n\nArtículo 2º - NOTIFICAR al/la docente.\n\nArtículo 3º - TOME RAZÓN Supervisión de Educación Secundaria, Dirección Provincial de Educación Secundaria, Director de Liquidaciones, Director de Control de Sueldos.`;
     }
+     if (tipo === 'ALTA_HORAS' || tipo === 'CAMBIO_SITUACION_REVISTA') {
+        this.form.patchValue({ numeroDisposicion: instrAlta });
+      } else if (tipo === 'BAJA_HORAS') {
+        this.form.patchValue({ numeroDisposicion: instrBaja });
+      }
 
     this.form.patchValue({ visto, considerando, articulos });
   }

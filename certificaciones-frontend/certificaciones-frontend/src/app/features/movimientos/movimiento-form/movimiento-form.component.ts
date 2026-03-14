@@ -107,7 +107,7 @@ import { Cargo, EspacioCurricular, SituacionRevistaEntity } from 'src/app/core/m
 
                 <mat-form-field appearance="outline">
                   <mat-label>Modalidad</mat-label>
-                  <input matInput formControlName="modalidad" placeholder="Ej: Presencial">
+                  <input matInput formControlName="modalidad" placeholder="Ej: CO , CB">
                   <mat-icon matSuffix>school</mat-icon>
                   @if (form.get('modalidad')?.errors?.['required'] && form.get('modalidad')?.touched) {
                     <mat-error>Campo obligatorio</mat-error>

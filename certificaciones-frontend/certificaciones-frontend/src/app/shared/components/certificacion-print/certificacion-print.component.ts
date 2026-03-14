@@ -98,7 +98,7 @@ import { CertificacionResponse } from '../../../core/models/models';
                   <tr>
                     <td class="center">{{ m.numero }}</td>
                     <td>{{ m.tipo === 'CARGO' ? m.cargo : m.espacioCurricular }}</td>
-                    <td class="center">{{ m.tipo === 'HORAS_CATEDRA' ? m.cantidadHoras : '—' }}</td>
+                   <td class="center">{{ m.tipo === 'CARGO' ? '1 cargo' : m.cantidadHoras }}</td>
                     <td class="center">{{ m.curso || '—' }}</td>
                     <td class="center">{{ m.division || '—' }}</td>
                     <td>{{ m.tipo === 'HORAS_CATEDRA' ? m.modalidad : '—' }}</td>
@@ -158,7 +158,7 @@ import { CertificacionResponse } from '../../../core/models/models';
     .nota-pie-editor { padding: 12px 24px; border-bottom: 1px solid #e2e8f0; background: #f8fafc; }
     .nota-field { width: 100%; }
 
-    .cert-wrapper { padding: 16px; background: #f1f5f9; max-height: 62vh; overflow-y: auto; }
+    .cert-wrapper { padding: 8px; background: #f1f5f9; max-height: 62vh; overflow-y: auto; }
     .cert-document { background: white; padding: 10mm 6mm; max-width: 100%; margin: 0 auto; box-shadow: 0 2px 12px rgba(0,0,0,0.15); border-radius: 4px; }
 
     .cert-header { display: flex; align-items: center; gap: 16px; margin-bottom: 12px; }
@@ -189,9 +189,12 @@ import { CertificacionResponse } from '../../../core/models/models';
     .cert-sign-role { font-weight: 600; }
     .cert-date-col { display: flex; align-items: flex-end; justify-content: center; }
     .cert-lugar { font-size: 0.82rem; color: #475569; }
-
+    .col-obs { width: 15%; }
+    .col-modalidad { width: 7%; }
+    .col-sit { width: 8%; }
+    .col-hs { width: 10%; }
     @media print {
-      @page { size: A4 landscape; margin: 8mm 6mm; }
+      @page { size: A4 landscape; margin: 2mm 6mm; }
       .no-print { display: none !important; }
       .cert-wrapper { padding: 0 !important; background: white !important; max-height: none !important; overflow: visible !important; }
       .cert-document { box-shadow: none !important; border-radius: 0 !important; padding: 0 !important; max-width: 100% !important; width: 100% !important; }
